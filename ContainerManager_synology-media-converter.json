@@ -49,6 +49,12 @@
          "is_directory" : false,
          "mount_point" : "/app/config.json",
          "type" : "rw"
+      },
+      {
+         "host_volume_file" : "/docker/synology-media-converter/tmp",
+         "is_directory" : true,
+         "mount_point" : "/app/tmp",
+         "type" : "rw"
       }
    ],
    "host_config": {

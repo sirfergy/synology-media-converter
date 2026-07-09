@@ -10,6 +10,7 @@ RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
 COPY . /app
 WORKDIR /app
 RUN npm install --omit=dev
-RUN chmod +x entrypoint.sh
+RUN npm test
+RUN chmod +x entrypoint.sh run-converter.sh
 
 ENTRYPOINT ["/app/entrypoint.sh"]

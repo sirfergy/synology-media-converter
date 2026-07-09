@@ -15,8 +15,8 @@ if [ "$SINGLE_RUN" != "true" ]; then
     if [ -z "${CRON_INTERVAL+x}" ]; then
         CRON_INTERVAL="0 1 * * *"
     fi
-    echo "$CRON_INTERVAL /usr/bin/node /app/main.js" > /etc/crontabs/root
+    echo "$CRON_INTERVAL /app/run-converter.sh" > /etc/crontabs/root
     crond -f
 else
-    /usr/bin/node /app/main.js
+    /app/run-converter.sh "$@"
 fi

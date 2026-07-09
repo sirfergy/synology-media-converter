@@ -15,6 +15,7 @@ You can easily install the service via the [Container manager](https://www.synol
 docker run -d --name=synology-media-converter \
     --network=host \
     -v <config_file>:/app/config.json \
+    -v <state_directory>:/app/tmp \
     -e TZ=<timezone>
     -e CRON_INTERVAL="0 1 * * *" \
     -e USE_VAAPI=true \
@@ -50,6 +51,34 @@ Example config for 2 users on the same device:
 | SINGLE_RUN | Only run the script once instead of using cron. Auto restart of the container must be disabled. | false |
 | EXIT_ON_FAIL | Exit on conversion errors instead of permanently marking the affected file as broken. Usually only used for testing purposes. | false |
 | USE_VAAPI | Enable hardware acceleration via VAAPI. For more info see [Hardware Acceleration](#hardware-acceleration). | false |
+| REPAIR_LIMIT | Maximum number of existing HEIC/HEIF photos to repair in one manual run. `0` repairs all pending candidates. | 0 |
+
+## Repairing Existing Image Thumbnails
+
+Image thumbnails created before the resize fix can be regenerated with:
+
+```bash
+docker exec synology-media-converter \
+    /app/run-converter.sh --repair-images
+```
+
+Repair mode is manual and never runs from the nightly cron. It processes HEIC
+and HEIF photos sequentially through Synology Photos' regeneration API and
+stores resumable progress in `/app/tmp`, which must be a persistent volume.
+Live Photos are skipped by the first repair release. The first run records an
+index-time cutoff; if Synology later reindexes the library, remove the repair
+state files before starting a new repair pass.
+Use a small pilot before a full repair:
+
+```bash
+docker exec -e REPAIR_LIMIT=10 synology-media-converter \
+    /app/run-converter.sh --repair-images
+```
+
+The converter's normal and repair modes share a non-blocking file lock, so a
+nightly run exits without doing work while repair mode is active. When running
+repair mode from another host, stop the NAS converter first because file locks
+are not shared between hosts.
 
 ## Hardare Acceleration
 Hardware transcoding to x264 is currently supported on Intel and AMD Graphics using VAAPI, which is what's available on most DiskStation models. To enable hardware acceleration add the environment variable `USE_VAAPI=true` and pass through the VAAPI device via `--device /dev/dri/renderD128`. The right permissions will be set automatically on startup.
