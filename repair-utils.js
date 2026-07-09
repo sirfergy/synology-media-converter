@@ -9,6 +9,14 @@ function parseRepairLimit(value) {
     return Number(value);
 }
 
+function parseRepairItemId(value) {
+    if(value === undefined || value === '') return null;
+    if(!/^[1-9]\d*$/.test(value)) {
+        throw new Error('REPAIR_ITEM_ID must be a positive integer.');
+    }
+    return Number(value);
+}
+
 function isHeif(filename) {
     return /\.hei[cf]$/i.test(filename);
 }
@@ -76,6 +84,7 @@ module.exports = {
     isHeif,
     isRepairCandidate,
     loadOrCreateMetadata,
+    parseRepairItemId,
     parseRepairLimit,
     readIdSet,
     statePaths

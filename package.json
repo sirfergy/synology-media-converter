@@ -1,6 +1,6 @@
 {
   "name": "synology-media-converter",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Converts image and video formats not supported by Synology Photos, replacement for the official Synology Image Assistant app.",
   "main": "main.js",
   "scripts": {

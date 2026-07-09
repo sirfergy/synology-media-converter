@@ -7,6 +7,7 @@ const {
     appendId,
     isRepairCandidate,
     loadOrCreateMetadata,
+    parseRepairItemId,
     parseRepairLimit,
     readIdSet,
     statePaths
@@ -18,6 +19,13 @@ test('parseRepairLimit accepts unlimited and positive limits', () => {
     assert.equal(parseRepairLimit('25'), 25);
     assert.throws(() => parseRepairLimit('-1'));
     assert.throws(() => parseRepairLimit('1.5'));
+});
+
+test('parseRepairItemId accepts an optional positive id', () => {
+    assert.equal(parseRepairItemId(undefined), null);
+    assert.equal(parseRepairItemId('42'), 42);
+    assert.throws(() => parseRepairItemId('0'));
+    assert.throws(() => parseRepairItemId('-1'));
 });
 
 test('isRepairCandidate filters by extension, cutoff, and unit id', () => {

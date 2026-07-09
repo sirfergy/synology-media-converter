@@ -10,6 +10,7 @@ const {
     appendId,
     isRepairCandidate,
     loadOrCreateMetadata,
+    parseRepairItemId,
     parseRepairLimit,
     readIdSet,
     statePaths
@@ -409,7 +410,7 @@ async function repairCandidate(session, candidate, files) {
     }
 }
 
-async function repairImages(session, account, remainingLimit) {
+async function repairImages(session, account, remainingLimit, repairItemId) {
     const files = statePaths(tmpDirectory, account.username, account.url);
     await recoverInflightRepair(session, files.inflight);
     const metadata = loadOrCreateMetadata(files.metadata);
@@ -418,7 +419,7 @@ async function repairImages(session, account, remainingLimit) {
     const candidates = await listRepairCandidates(session, metadata.cutoffIndexedTime);
     const pending = candidates.filter(candidate =>
         !completed.has(candidate.itemId) && !skipped.has(candidate.itemId)
-    );
+    ).filter(candidate => repairItemId === null || candidate.itemId === repairItemId);
     const selected = remainingLimit === 0 ? pending : pending.slice(0, remainingLimit);
     const summary = {
         discovered: candidates.length,
@@ -429,6 +430,7 @@ async function repairImages(session, account, remainingLimit) {
         skipped: 0,
         failed: 0
     };
+    let consecutiveFailures = 0;
 
     console.log(
         `Repair candidates for ${account.username}: ${candidates.length}; `
@@ -444,10 +446,14 @@ async function repairImages(session, account, remainingLimit) {
         try {
             const result = await repairCandidate(session, candidate, files);
             summary[result]++;
+            consecutiveFailures = 0;
         } catch(error) {
             summary.failed++;
+            consecutiveFailures++;
             console.error(`Repair failed for "${candidate.filename}" (${candidate.itemId}):`, error);
-            if(process.env.EXIT_ON_FAIL == 'true') throw error;
+            if(process.env.EXIT_ON_FAIL == 'true' || consecutiveFailures >= 5) {
+                throw error;
+            }
         }
     }
 
@@ -493,6 +499,7 @@ function readLine(prompt) {
     try {
         if(repairMode) assertRepairStateMounted();
         const repairLimit = repairMode ? parseRepairLimit(process.env.REPAIR_LIMIT) : 0;
+        const repairItemId = repairMode ? parseRepairItemId(process.env.REPAIR_ITEM_ID) : null;
         let remainingLimit = repairLimit;
 
         for(const account of config.accounts) {
@@ -509,7 +516,7 @@ function readLine(prompt) {
             }
 
             if(repairMode) {
-                const summary = await repairImages(session, account, remainingLimit);
+                const summary = await repairImages(session, account, remainingLimit, repairItemId);
                 if(repairLimit > 0) {
                     remainingLimit -= summary.attempted;
                     if(remainingLimit <= 0) break;

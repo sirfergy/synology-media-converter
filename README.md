@@ -52,6 +52,7 @@ Example config for 2 users on the same device:
 | EXIT_ON_FAIL | Exit on conversion errors instead of permanently marking the affected file as broken. Usually only used for testing purposes. | false |
 | USE_VAAPI | Enable hardware acceleration via VAAPI. For more info see [Hardware Acceleration](#hardware-acceleration). | false |
 | REPAIR_LIMIT | Maximum number of existing HEIC/HEIF photos to repair in one manual run. `0` repairs all pending candidates. | 0 |
+| REPAIR_ITEM_ID | Repair only one Synology Photos item ID. Useful for targeted validation. | |
 
 ## Repairing Existing Image Thumbnails
 
